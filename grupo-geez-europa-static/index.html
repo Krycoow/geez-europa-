@@ -31,7 +31,12 @@
         "https://www.instagram.com/"
       ],
       "address": {"@type":"PostalAddress","addressLocality":"Madrid","addressCountry":"ES"},
-      "contactPoint": {"@type":"ContactPoint","telephone":"+34 900 000 000","contactType":"customer service","areaServed":"ES"}
+      "contactPoint": {"@type":"ContactPoint","telephone":"+34 900 000 000","contactType":"customer service","areaServed":"ES"},
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "127"
+      }
     }
     </script>
   </head>
@@ -47,14 +52,29 @@
           <a href="#areas">Áreas</a>
           <a href="#proceso">Proceso</a>
           <a href="#galeria">Galería</a>
+          <a href="#calculadora">Calculadora</a>
           <a href="#opiniones">Opiniones</a>
         </nav>
         <div>
+          <button id="menuToggle" class="nav-toggle" aria-label="Abrir menú" title="Menú">☰</button>
           <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">🌙</button>
           <a class="btn btn-primary" href="#contacto">Pide tu presupuesto</a>
         </div>
       </div>
     </header>
+
+    <div id="mobileMenu" class="mobile-menu" role="dialog" aria-modal="true" aria-label="Menú">
+      <nav class="container">
+        <a href="#inicio">Inicio</a>
+        <a href="#servicios">Servicios</a>
+        <a href="#areas">Áreas</a>
+        <a href="#proceso">Proceso</a>
+        <a href="#galeria">Galería</a>
+        <a href="#calculadora">Calculadora</a>
+        <a href="#opiniones">Opiniones</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+    </div>
 
     <main>
       <div class="cursor-dot"></div>
@@ -67,7 +87,7 @@
             <h1>Reformas integrales con acabados de alto nivel</h1>
             <p>Viviendas, cocinas, baños, oficinas y locales. Proyectos llave en mano con planificación precisa, materiales de calidad y garantía por escrito.</p>
             <div class="hero-cta">
-              <a href="#contacto" class="btn btn-primary">Solicitar presupuesto</a>
+              <a href="#contacto" class="btn btn-primary">Pide tu presupuesto</a>
               <a href="#galeria" class="btn btn-outline">Ver proyectos</a>
             </div>
             <div class="hero-stats">
@@ -150,6 +170,39 @@
         </div>
       </section>
 
+      <section class="section" id="casos-estudio">
+        <div class="container">
+          <div class="section-head">
+            <span class="badge">Casos de estudio</span>
+            <h2>Proyectos que hablan por sí solos</h2>
+            <p>Transformaciones reales con resultados medibles y clientes satisfechos.</p>
+          </div>
+          <div class="grid grid-3">
+            <article class="card">
+              <img loading="lazy" src="https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop" alt="Reforma vivienda completa" style="width:100%;height:200px;object-fit:cover;margin:-22px -22px 16px;">
+              <h3>Reforma integral en Madrid</h3>
+              <p><strong>Desafío:</strong> Vivienda de 85m² con distribución obsoleta y falta de luz natural.</p>
+              <p><strong>Solución:</strong> Demolición de tabiques, redistribución completa y apertura de ventanas.</p>
+              <p><strong>Resultado:</strong> +40% de luz, 3 dormitorios funcionales y cocina integrada.</p>
+            </article>
+            <article class="card">
+              <img loading="lazy" src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=1200&auto=format&fit=crop" alt="Cocina premium" style="width:100%;height:200px;object-fit:cover;margin:-22px -22px 16px;">
+              <h3>Cocina a medida en Barcelona</h3>
+              <p><strong>Desafío:</strong> Espacio de 12m² con poco almacenaje y sin iluminación adecuada.</p>
+              <p><strong>Solución:</strong> Diseño en L con isla, encimera de cuarzo y perfil LED integrado.</p>
+              <p><strong>Resultado:</strong> Cocina funcional con +60% de almacenaje y acabados premium.</p>
+            </article>
+            <article class="card">
+              <img loading="lazy" src="https://images.unsplash.com/photo-1598300183691-9a57f8b4f9c0?q=80&w=1200&auto=format&fit=crop" alt="Baño moderno" style="width:100%;height:200px;object-fit:cover;margin:-22px -22px 16px;">
+              <h3>Baño completo en Valencia</h3>
+              <p><strong>Desafío:</strong> Baño de 6m² con bañera antigua y sin espacio de almacenaje.</p>
+              <p><strong>Solución:</strong> Sustitución por plato de ducha, mueble a medida y microcemento.</p>
+              <p><strong>Resultado:</strong> Baño moderno, accesible y fácil mantenimiento.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <section class="section section-alt" id="areas">
         <div class="container">
           <div class="section-head">
@@ -214,7 +267,7 @@
         <div class="container">
           <div class="section-head">
             <span class="badge">Proceso</span>
-            <h2>Así convertimos tu baño en un espacio único</h2>
+            <h2>Así gestionamos tu reforma de principio a fin</h2>
           </div>
           <div class="grid grid-2">
             <div class="card step">
@@ -256,12 +309,12 @@
             <h2>Inspiración para tu próxima reforma</h2>
           </div>
           <div class="grid grid-3 thumbs">
-            <div class="card gallery-item"><img src="https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop" alt="Salón reformado" data-gallery="1"></div>
-            <div class="card gallery-item"><img src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=1200&auto=format&fit=crop" alt="Cocina moderna" data-gallery="2"></div>
-            <div class="card gallery-item"><img src="https://images.unsplash.com/photo-1505691723518-36a5ac3b2d52?q=80&w=1200&auto=format&fit=crop" alt="Oficina luminosa" data-gallery="3"></div>
-            <div class="card gallery-item"><img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?q=80&w=1200&auto=format&fit=crop" alt="Dormitorio elegante" data-gallery="4"></div>
-            <div class="card gallery-item"><img src="https://images.unsplash.com/photo-1598300183691-9a57f8b4f9c0?q=80&w=1200&auto=format&fit=crop" alt="Baño con microcemento" data-gallery="5"></div>
-            <div class="card gallery-item"><img src="https://images.unsplash.com/photo-1617093727343-374698b1b08a?q=80&w=1200&auto=format&fit=crop" alt="Local comercial" data-gallery="6"></div>
+            <div class="card gallery-item"><img loading="lazy" src="https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop" alt="Salón reformado" data-gallery="1"></div>
+            <div class="card gallery-item"><img loading="lazy" src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=1200&auto=format&fit=crop" alt="Cocina moderna" data-gallery="2"></div>
+            <div class="card gallery-item"><img loading="lazy" src="https://images.unsplash.com/photo-1505691723518-36a5ac3b2d52?q=80&w=1200&auto=format&fit=crop" alt="Oficina luminosa" data-gallery="3"></div>
+            <div class="card gallery-item"><img loading="lazy" src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?q=80&w=1200&auto=format&fit=crop" alt="Dormitorio elegante" data-gallery="4"></div>
+            <div class="card gallery-item"><img loading="lazy" src="https://images.unsplash.com/photo-1598300183691-9a57f8b4f9c0?q=80&w=1200&auto=format&fit=crop" alt="Baño con microcemento" data-gallery="5"></div>
+            <div class="card gallery-item"><img loading="lazy" src="https://images.unsplash.com/photo-1617093727343-374698b1b08a?q=80&w=1200&auto=format&fit=crop" alt="Local comercial" data-gallery="6"></div>
           </div>
         </div>
       </section>
@@ -369,11 +422,47 @@
           <div class="section-head">
             <span class="badge">Opiniones</span>
             <h2>Clientes felices</h2>
+            <p>Valoración media: <strong>4.9/5</strong> · <a href="#" target="_blank" rel="noreferrer">Ver todas las reseñas en Google</a></p>
           </div>
           <div class="grid grid-3">
-            <figure class="card quote"><blockquote>“Profesionales, puntuales y muy detallistas. El baño ha quedado espectacular y muy funcional.”</blockquote><figcaption>María G. · Madrid</figcaption></figure>
-            <figure class="card quote"><blockquote>“Nos propusieron un diseño morado suave que nos encantó. Obra limpia y rápida.”</blockquote><figcaption>Javier R. · Barcelona</figcaption></figure>
-            <figure class="card quote"><blockquote>“Excelente comunicación y acabados premium. Repetiríamos sin duda.”</blockquote><figcaption>Laura S. · Valencia</figcaption></figure>
+            <figure class="card quote"><blockquote>“Profesionales, puntuales y muy detallistas. El baño ha quedado espectacular y muy funcional.”</blockquote><figcaption>María G. · Madrid · ⭐⭐⭐⭐⭐</figcaption></figure>
+            <figure class="card quote"><blockquote>“Nos propusieron un diseño morado suave que nos encantó. Obra limpia y rápida.”</blockquote><figcaption>Javier R. · Barcelona · ⭐⭐⭐⭐⭐</figcaption></figure>
+            <figure class="card quote"><blockquote>“Excelente comunicación y acabados premium. Repetiríamos sin duda.”</blockquote><figcaption>Laura S. · Valencia · ⭐⭐⭐⭐⭐</figcaption></figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-alt" id="calculadora">
+        <div class="container">
+          <div class="section-head">
+            <span class="badge">Estimador</span>
+            <h2>Calcula un presupuesto orientativo</h2>
+            <p>Valores aproximados según tipo de estancia y metros cuadrados. El presupuesto final es personalizado.</p>
+          </div>
+          <div class="card" style="max-width:600px;margin:0 auto;">
+            <div style="padding:24px;">
+              <label style="display:block;margin-bottom:8px;font-weight:600;">Tipo de estancia</label>
+              <select id="calcType" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);margin-bottom:16px;">
+                <option value="baño">Baño</option>
+                <option value="cocina">Cocina</option>
+                <option value="salon">Salón/Dormitorio</option>
+                <option value="vivienda">Vivienda completa</option>
+                <option value="local">Local/Oficina</option>
+              </select>
+              <label style="display:block;margin-bottom:8px;font-weight:600;">Metros cuadrados</label>
+              <input type="number" id="calcArea" min="1" step="1" placeholder="Ej: 10" value="10" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);margin-bottom:16px;">
+              <label style="display:block;margin-bottom:8px;font-weight:600;">Calidad</label>
+              <select id="calcQuality" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);margin-bottom:16px;">
+                <option value="standard">Estándar</option>
+                <option value="premium" selected>Premium</option>
+                <option value="lujo">Lujo</option>
+              </select>
+              <div style="padding:20px;background:rgba(109,40,217,0.08);border-radius:10px;text-align:center;">
+                <p style="margin:0 0 8px;color:var(--muted);">Estimación aproximada</p>
+                <strong id="calcResult" style="font-size:32px;color:var(--primary);">-</strong>
+              </div>
+              <p style="margin-top:16px;font-size:14px;color:var(--muted);text-align:center;">Este es un valor orientativo. Solicita tu presupuesto personalizado para un cálculo exacto.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -429,7 +518,7 @@
               <span class="brand-icon"></span>
               <strong>Grupo Geez Europa</strong>
             </div>
-            <p>Especialistas en reformas de baños con más de 10 años de experiencia. Calidad, diseño y profesionalidad.</p>
+            <p>Especialistas en reformas integrales con más de 10 años de experiencia. Calidad, diseño y profesionalidad.</p>
           </div>
           <div class="footer-col">
             <h4>Enlaces</h4>
@@ -460,7 +549,7 @@
           </div>
         </div>
         <div class="footer-bottom">
-          <small>© <span id="year"></span> Grupo Geez Europa · Reformas Integrales y Construcción. Todos los derechos reservados.</small>
+          <small>© <span id="year"></span> Grupo Geez Europa · Reformas Integrales y Construcción · Developer by KryDev. Todos los derechos reservados.</small>
         </div>
       </div>
     </footer>
@@ -472,7 +561,54 @@
     </a>
 
     <button id="backToTop" class="back-to-top" aria-label="Volver arriba">↑</button>
+    <div class="contact-bar" role="region" aria-label="Accesos rápidos">
+      <a class="btn btn-primary" href="#contacto">Presupuesto</a>
+      <a class="btn btn-outline" href="tel:+34900000000">Llamar</a>
+      <a class="btn btn-outline" href="https://wa.me/000000000" target="_blank" rel="noreferrer">WhatsApp</a>
+    </div>
+    <div class="sticky-cta">
+      <a href="#contacto" class="btn btn-primary" data-magnetic>Pide tu presupuesto</a>
+    </div>
 
+    <!-- Hidden Admin Modal (open with Ctrl+Alt+A or #admin) -->
+    <div id="adminModal" class="admin-modal" aria-hidden="true">
+      <div class="admin-card container">
+        <div class="admin-actions">
+          <strong>Panel de administración</strong>
+          <button id="adminClose" class="admin-close" aria-label="Cerrar">✕</button>
+        </div>
+        <div id="adminAuth">
+          <p>Introduce la clave de acceso:</p>
+          <div class="form-inline">
+            <input id="adminKey" placeholder="Clave" type="password">
+            <button id="adminLogin" class="btn btn-primary">Entrar</button>
+          </div>
+          <p id="adminMsg" class="form-msg" aria-live="polite"></p>
+        </div>
+        <div id="adminPanel" style="display:none;">
+          <div class="admin-actions">
+            <div>
+              <button id="exportQuotes" class="btn btn-outline">Exportar CSV</button>
+              <button id="clearQuotes" class="btn btn-outline">Borrar todo</button>
+            </div>
+          </div>
+          <div class="card" style="overflow:auto;">
+            <table id="quotesTable" class="admin-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Estancia</th><th>Presupuesto</th><th>m²</th><th>Mensaje</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+    <script src="db-config.js"></script>
     <script src="app.js"></script>
   </body>
   </html>

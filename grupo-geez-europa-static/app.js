@@ -17,6 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const formMsg = document.getElementById('formMsg');
   const sendBtn = document.getElementById('sendBtn');
+  // Initialize Firestore if configured
+  let firestore = null;
+  try {
+    if (window.DB_PROVIDER === 'firestore' && window.firebase && window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId) {
+      if (!window.__firebaseApp) {
+        window.__firebaseApp = window.firebase.initializeApp(window.FIREBASE_CONFIG);
+      }
+      firestore = window.firebase.firestore();
+    }
+  } catch (_) {}
+
   if (sendBtn && formMsg) {
     sendBtn.addEventListener('click', () => {
       const name = document.getElementById('fName')?.value || '';
@@ -39,12 +50,24 @@ document.addEventListener('DOMContentLoaded', () => {
         name, phone, email, budget, space, area, message,
       };
       try {
-        const key = 'geez_quotes';
-        const list = JSON.parse(localStorage.getItem(key) || '[]');
-        list.unshift(entry);
-        localStorage.setItem(key, JSON.stringify(list));
-        formMsg.textContent = 'Enviado. Te contactaremos en menos de 24 horas.';
-        formMsg.style.color = '#16a34a';
+        const saveLocal = () => {
+          const key = 'geez_quotes';
+          const list = JSON.parse(localStorage.getItem(key) || '[]');
+          list.unshift(entry);
+          localStorage.setItem(key, JSON.stringify(list));
+        };
+        const saveRemote = async () => {
+          if (!firestore) return saveLocal();
+          await firestore.collection('quotes').add(entry);
+        };
+        Promise.resolve(saveRemote()).then(() => {
+          formMsg.textContent = 'Enviado. Te contactaremos en menos de 24 horas.';
+          formMsg.style.color = '#16a34a';
+        }).catch(() => {
+          saveLocal();
+          formMsg.textContent = 'Enviado (modo local). Te contactaremos en menos de 24 horas.';
+          formMsg.style.color = '#16a34a';
+        });
         // Copiar enlace compartible al portapapeles
         try {
           const shareUrl = buildShareUrl(entry);
@@ -249,36 +272,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
-  // Custom cursor and magnetic interactions
+  // Custom cursor and magnetic interactions (only for fine pointers like mouse)
+  const enableCustomCursor = false; // fully disabled per branding decision
+  const isFinePointer = enableCustomCursor && matchMedia('(hover: hover) and (pointer: fine)').matches;
   const cursorDot = document.querySelector('.cursor-dot');
   const cursorRing = document.querySelector('.cursor-ring');
   let cursorX = 0, cursorY = 0;
   let ringX = 0, ringY = 0;
-  const moveCursor = (e) => {
-    cursorX = e.clientX; cursorY = e.clientY;
-    if (cursorDot) { cursorDot.style.transform = `translate(${cursorX}px, ${cursorY}px)`; }
-  };
-  const renderRing = () => {
-    ringX += (cursorX - ringX) * 0.18;
-    ringY += (cursorY - ringY) * 0.18;
-    if (cursorRing) { cursorRing.style.transform = `translate(${ringX}px, ${ringY}px)`; }
-    requestAnimationFrame(renderRing);
-  };
-  if (cursorDot && cursorRing) {
+  if (isFinePointer && cursorDot && cursorRing) {
+    const moveCursor = (e) => {
+      cursorX = e.clientX; cursorY = e.clientY;
+      cursorDot.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
+    };
+    const renderRing = () => {
+      ringX += (cursorX - ringX) * 0.18;
+      ringY += (cursorY - ringY) * 0.18;
+      cursorRing.style.transform = `translate(${ringX}px, ${ringY}px)`;
+      requestAnimationFrame(renderRing);
+    };
     window.addEventListener('pointermove', moveCursor);
     window.addEventListener('pointerdown', () => document.body.classList.add('is-press'));
     window.addEventListener('pointerup', () => document.body.classList.remove('is-press'));
     requestAnimationFrame(renderRing);
-    // Hide cursor when leaving window
     window.addEventListener('mouseout', () => { cursorDot.classList.add('cursor-hide'); cursorRing.classList.add('cursor-hide'); });
     window.addEventListener('mouseover', () => { cursorDot.classList.remove('cursor-hide'); cursorRing.classList.remove('cursor-hide'); });
-    // Hover targets
     const hoverables = Array.from(document.querySelectorAll('a, button, .card, [data-magnetic]'));
     hoverables.forEach(el => {
       el.addEventListener('mouseenter', () => document.body.classList.add('is-hover'));
       el.addEventListener('mouseleave', () => document.body.classList.remove('is-hover'));
     });
-    // Magnetic effect on buttons
     document.querySelectorAll('[data-magnetic]').forEach(el => {
       el.addEventListener('pointermove', (e) => {
         const rect = el.getBoundingClientRect();
@@ -288,6 +310,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       el.addEventListener('pointerleave', () => { el.style.transform = 'translate(0px, 0px)'; });
     });
+  } else {
+    if (cursorDot) cursorDot.style.display = 'none';
+    if (cursorRing) cursorRing.style.display = 'none';
   }
 
   // Button hover shimmer (set mouse coords into CSS vars)
@@ -313,6 +338,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Mobile menu toggle
+  const menuToggle = document.getElementById('menuToggle');
+  const mobileMenu = document.getElementById('mobileMenu');
+  if (menuToggle && mobileMenu) {
+    const closeMenu = () => mobileMenu.classList.remove('open');
+    menuToggle.addEventListener('click', () => {
+      mobileMenu.classList.toggle('open');
+    });
+    mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+    window.addEventListener('scroll', closeMenu, { passive: true });
+  }
 
   // Back to top button
   const backToTop = document.getElementById('backToTop');
@@ -342,10 +379,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const adminMsg = document.getElementById('adminMsg');
   const adminAuth = document.getElementById('adminAuth');
   const adminPanel = document.getElementById('adminPanel');
+  const adminModal = document.getElementById('adminModal');
+  const adminClose = document.getElementById('adminClose');
   if (adminLogin && adminKey && adminAuth && adminPanel) {
     adminLogin.addEventListener('click', () => {
-      const val = String(adminKey.value || '').trim().toLowerCase();
-      if (val === 'geez europa') {
+      const val = String(adminKey.value || '').trim();
+      if (val === 'GRUPOGEEZEUROPA') {
         adminAuth.style.display = 'none';
         adminPanel.style.display = 'block';
         if (adminMsg) { adminMsg.textContent = ''; }
@@ -356,34 +395,72 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Open admin (hidden) with Ctrl+Alt+A or hash/query
+  const openAdmin = () => { if (adminModal) { adminModal.classList.add('open'); adminModal.setAttribute('aria-hidden', 'false'); } };
+  const closeAdmin = () => { if (adminModal) { adminModal.classList.remove('open'); adminModal.setAttribute('aria-hidden', 'true'); } };
+  if (adminModal) {
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.altKey && (e.key.toLowerCase() === 'a')) { e.preventDefault(); openAdmin(); }
+      if (e.key === 'Escape') closeAdmin();
+    });
+    if (adminClose) adminClose.addEventListener('click', closeAdmin);
+    if (location.hash === '#admin' || new URLSearchParams(location.search).get('admin') === '1') openAdmin();
+    adminModal.addEventListener('click', (e) => { if (e.target === adminModal) closeAdmin(); });
+  }
+
   function renderQuotes() {
     const key = 'geez_quotes';
     const table = document.getElementById('quotesTable');
     if (!table) return;
     const tbody = table.querySelector('tbody');
     if (!tbody) return;
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
-    tbody.innerHTML = '';
-    list.forEach(item => {
-      const tr = document.createElement('tr');
-      const d = new Date(item.date);
-      const dateStr = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
-      tr.innerHTML = `
-        <td>${escapeHtml(dateStr)}</td>
-        <td>${escapeHtml(item.name)}</td>
-        <td>${escapeHtml(item.phone)}</td>
-        <td>${escapeHtml(item.email)}</td>
-        <td>${escapeHtml(item.space)}</td>
-        <td>${escapeHtml(String(item.budget))}</td>
-        <td>${escapeHtml(item.area || '')}</td>
-        <td>${escapeHtml(item.message)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    const exportBtn = document.getElementById('exportQuotes');
-    const clearBtn = document.getElementById('clearQuotes');
-    if (exportBtn) exportBtn.onclick = () => exportCSV(list);
-    if (clearBtn) clearBtn.onclick = () => { localStorage.removeItem(key); renderQuotes(); };
+    const loadLocal = () => {
+      const list = JSON.parse(localStorage.getItem(key) || '[]');
+      paint(list);
+      wire(list);
+    };
+    const loadRemote = async () => {
+      if (!firestore) return loadLocal();
+      const snap = await firestore.collection('quotes').orderBy('date','desc').get();
+      const rows = snap.docs.map(d => d.data());
+      paint(rows);
+      wire(rows);
+    };
+    const paint = (list) => {
+      tbody.innerHTML = '';
+      list.forEach(item => {
+        const tr = document.createElement('tr');
+        const d = new Date(item.date);
+        const dateStr = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+        tr.innerHTML = `
+          <td>${escapeHtml(dateStr)}</td>
+          <td>${escapeHtml(item.name)}</td>
+          <td>${escapeHtml(item.phone)}</td>
+          <td>${escapeHtml(item.email)}</td>
+          <td>${escapeHtml(item.space)}</td>
+          <td>${escapeHtml(String(item.budget))}</td>
+          <td>${escapeHtml(item.area || '')}</td>
+          <td>${escapeHtml(item.message)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+    const wire = (list) => {
+      const exportBtn = document.getElementById('exportQuotes');
+      const clearBtn = document.getElementById('clearQuotes');
+      if (exportBtn) exportBtn.onclick = () => exportCSV(list);
+      if (clearBtn) clearBtn.onclick = async () => {
+        if (firestore) {
+          const snap = await firestore.collection('quotes').get();
+          const batch = firestore.batch();
+          snap.forEach(doc => batch.delete(doc.ref));
+          await batch.commit();
+        }
+        localStorage.removeItem(key);
+        renderQuotes();
+      };
+    };
+    loadRemote();
   }
 
   function exportCSV(list) {
@@ -400,6 +477,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function escapeHtml(str) {
     return String(str).replace(/[&<>"]+/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s] || s));
+  }
+
+  // Calculator logic
+  const calcType = document.getElementById('calcType');
+  const calcArea = document.getElementById('calcArea');
+  const calcQuality = document.getElementById('calcQuality');
+  const calcResult = document.getElementById('calcResult');
+  const updateCalc = () => {
+    if (!calcType || !calcArea || !calcQuality || !calcResult) return;
+    const type = calcType.value;
+    const area = Number(calcArea.value) || 0;
+    const quality = calcQuality.value;
+    if (area <= 0) { calcResult.textContent = '-'; return; }
+    const basePrices = { baño: 350, cocina: 450, salon: 300, vivienda: 250, local: 400 };
+    const qualityMulti = { standard: 0.8, premium: 1.0, lujo: 1.5 };
+    const base = basePrices[type] || 300;
+    const multi = qualityMulti[quality] || 1.0;
+    const est = Math.round(base * area * multi);
+    calcResult.textContent = est.toLocaleString('es-ES') + ' €';
+  };
+  if (calcType && calcArea && calcQuality) {
+    [calcType, calcArea, calcQuality].forEach(el => el.addEventListener('input', updateCalc));
+    updateCalc();
   }
 });
 
