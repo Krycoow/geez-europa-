@@ -45,12 +45,101 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem(key, JSON.stringify(list));
         formMsg.textContent = 'Enviado. Te contactaremos en menos de 24 horas.';
         formMsg.style.color = '#16a34a';
+        // Copiar enlace compartible al portapapeles
+        try {
+          const shareUrl = buildShareUrl(entry);
+          if (navigator.clipboard && shareUrl) {
+            navigator.clipboard.writeText(shareUrl).catch(() => {});
+          }
+        } catch (_) {}
+        // Abrir WhatsApp con mensaje pre-rellenado
+        try {
+          const waHref = buildWhatsAppHref(entry);
+          if (waHref) window.open(waHref, '_blank');
+        } catch (_) {}
         setTimeout(() => { formMsg.textContent = ''; formMsg.style.color = ''; }, 4000);
       } catch (e) {
         formMsg.textContent = 'Error guardando la solicitud. Inténtalo de nuevo.';
         formMsg.style.color = '#ef4444';
       }
     });
+  }
+
+  // Actualizar href del botón WhatsApp del formulario a medida que se rellena
+  const formWhatsAppBtn = document.querySelector('.cta .btn.btn-outline[href^="https://wa.me/"]');
+  const watchedInputs = ['fName','fPhone','fEmail','fBudget','fSpace','fArea','fMessage']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+  if (formWhatsAppBtn && watchedInputs.length) {
+    const updateWa = () => {
+      const data = {
+        name: document.getElementById('fName')?.value || '',
+        phone: document.getElementById('fPhone')?.value || '',
+        email: document.getElementById('fEmail')?.value || '',
+        budget: document.getElementById('fBudget')?.value || '',
+        space: document.getElementById('fSpace')?.value || '',
+        area: document.getElementById('fArea')?.value || '',
+        message: document.getElementById('fMessage')?.value || '',
+      };
+      const href = buildWhatsAppHref(data);
+      if (href) formWhatsAppBtn.setAttribute('href', href);
+    };
+    watchedInputs.forEach(el => el.addEventListener('input', updateWa));
+    updateWa();
+  }
+
+  // Prefill desde URL (enlace compartible)
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.size) {
+      const fill = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+      fill('fName', params.get('name') || '');
+      fill('fPhone', params.get('phone') || '');
+      fill('fEmail', params.get('email') || '');
+      fill('fBudget', params.get('budget') || '');
+      fill('fSpace', params.get('space') || '');
+      fill('fArea', params.get('area') || '');
+      fill('fMessage', params.get('message') || '');
+    }
+  } catch (_) {}
+
+  function buildShareUrl(data) {
+    const url = new URL(window.location.href);
+    url.search = '';
+    const params = new URLSearchParams();
+    if (data.name) params.set('name', data.name);
+    if (data.phone) params.set('phone', data.phone);
+    if (data.email) params.set('email', data.email);
+    if (data.budget) params.set('budget', data.budget);
+    if (data.space) params.set('space', data.space);
+    if (data.area) params.set('area', String(data.area || ''));
+    if (data.message) params.set('message', data.message);
+    return `${url.origin}${url.pathname}?${params.toString()}`;
+  }
+
+  function buildWhatsAppHref(data) {
+    // Intentar extraer el número de algún enlace wa.me existente en la página
+    const waAnchor = document.querySelector('a[href^="https://wa.me/"]');
+    const fallbackNumber = '000000000';
+    let number = fallbackNumber;
+    if (waAnchor) {
+      try {
+        const m = String(waAnchor.getAttribute('href') || '').match(/wa\.me\/(\d+)/);
+        if (m && m[1]) number = m[1];
+      } catch (_) {}
+    }
+    const lines = [
+      'Hola, quiero solicitar un presupuesto a medida:',
+      `• Nombre: ${data.name || '-'}`,
+      `• Teléfono: ${data.phone || '-'}`,
+      `• Email: ${data.email || '-'}`,
+      `• Estancia/Tipo: ${data.space || '-'}`,
+      `• Presupuesto: ${data.budget || '-'}`,
+      `• Metros²: ${data.area || '-'}`,
+      `• Comentarios: ${data.message || '-'}`,
+    ];
+    const text = encodeURIComponent(lines.join('\n'));
+    return `https://wa.me/${number}?text=${text}`;
   }
 
   // Gallery Modal
@@ -75,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
       modal.classList.remove('active');
-      document.body.style.overflow = '';
+      document.body.style.overflow = ''; 
     });
   }
 
@@ -160,8 +249,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
+  // Custom cursor and magnetic interactions
+  const cursorDot = document.querySelector('.cursor-dot');
+  const cursorRing = document.querySelector('.cursor-ring');
+  let cursorX = 0, cursorY = 0;
+  let ringX = 0, ringY = 0;
+  const moveCursor = (e) => {
+    cursorX = e.clientX; cursorY = e.clientY;
+    if (cursorDot) { cursorDot.style.transform = `translate(${cursorX}px, ${cursorY}px)`; }
+  };
+  const renderRing = () => {
+    ringX += (cursorX - ringX) * 0.18;
+    ringY += (cursorY - ringY) * 0.18;
+    if (cursorRing) { cursorRing.style.transform = `translate(${ringX}px, ${ringY}px)`; }
+    requestAnimationFrame(renderRing);
+  };
+  if (cursorDot && cursorRing) {
+    window.addEventListener('pointermove', moveCursor);
+    window.addEventListener('pointerdown', () => document.body.classList.add('is-press'));
+    window.addEventListener('pointerup', () => document.body.classList.remove('is-press'));
+    requestAnimationFrame(renderRing);
+    // Hide cursor when leaving window
+    window.addEventListener('mouseout', () => { cursorDot.classList.add('cursor-hide'); cursorRing.classList.add('cursor-hide'); });
+    window.addEventListener('mouseover', () => { cursorDot.classList.remove('cursor-hide'); cursorRing.classList.remove('cursor-hide'); });
+    // Hover targets
+    const hoverables = Array.from(document.querySelectorAll('a, button, .card, [data-magnetic]'));
+    hoverables.forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('is-hover'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('is-hover'));
+    });
+    // Magnetic effect on buttons
+    document.querySelectorAll('[data-magnetic]').forEach(el => {
+      el.addEventListener('pointermove', (e) => {
+        const rect = el.getBoundingClientRect();
+        const relX = e.clientX - rect.left - rect.width / 2;
+        const relY = e.clientY - rect.top - rect.height / 2;
+        el.style.transform = `translate(${relX * 0.08}px, ${relY * 0.08}px)`;
+      });
+      el.addEventListener('pointerleave', () => { el.style.transform = 'translate(0px, 0px)'; });
+    });
+  }
+
   // Button hover shimmer (set mouse coords into CSS vars)
   document.querySelectorAll('.btn-primary').forEach(btn => {
+    btn.setAttribute('data-magnetic', '');
     btn.addEventListener('pointermove', (e) => {
       const rect = btn.getBoundingClientRect();
       btn.style.setProperty('--x', `${e.clientX - rect.left}px`);
@@ -191,6 +322,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
     backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
+
+  // Before/After slider logic
+  document.querySelectorAll('.before-after').forEach(wrapper => {
+    const pane = wrapper.querySelector('.before-pane');
+    const slider = wrapper.querySelector('.ba-slider');
+    if (!pane || !slider) return;
+    const update = (val) => {
+      const pct = Number(val);
+      pane.style.width = pct + '%';
+    };
+    slider.addEventListener('input', (e) => update(e.target.value));
+    update(slider.value);
+  });
 
   // Admin panel auth (client-side demo only)
   const adminLogin = document.getElementById('adminLogin');
