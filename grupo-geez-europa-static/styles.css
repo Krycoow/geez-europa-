@@ -255,24 +255,9 @@ a:not(.btn):hover { color: var(--primary); }
 .contact-bar { position: fixed; left: 0; right: 0; bottom: 0; display: none; gap: 10px; padding: 10px 14px; background: rgba(255,255,255,0.96); border-top: 1px solid rgba(15,15,20,0.06); backdrop-filter: saturate(180%) blur(12px); z-index: 998; }
 .contact-bar .btn { flex: 1; justify-content: center; }
 @media (max-width: 900px) { .contact-bar { display: flex; } .whatsapp-float { bottom: 86px; } }
-/* Sticky CTA desktop */
-.sticky-cta { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 997; display: none; box-shadow: var(--shadow-strong); }
-@media (min-width: 901px) { .sticky-cta { display: block; } .whatsapp-float { bottom: 86px; } }
-@media (max-width: 900px) { .sticky-cta { display: none !important; } }
 
 /* Back to top */
 .back-to-top { position: fixed; right: 24px; bottom: 96px; width: 44px; height: 44px; border-radius: 50%; background: var(--primary); color: #fff; border: none; cursor: pointer; display: none; align-items: center; justify-content: center; box-shadow: var(--shadow-soft); }
 .back-to-top.show { display: flex; }
 
-/* Admin table */
-.admin-table { width: 100%; border-collapse: collapse; }
-.admin-table th, .admin-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
-.admin-table thead th { position: sticky; top: 0; background: var(--surface); }
-
-/* Admin modal */
-.admin-modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 1100; }
-.admin-modal.open { display: flex; }
-.admin-card { width: min(100%, 920px); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-strong); padding: 18px; max-height: 90vh; overflow: auto; }
-.admin-actions { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin: 8px 0 12px; }
-.admin-close { background: transparent; border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 999px; cursor: pointer; }
 

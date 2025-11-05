@@ -19,14 +19,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const sendBtn = document.getElementById('sendBtn');
   // Initialize Firestore if configured
   let firestore = null;
+  const collectionName = (window.FIRESTORE_SETTINGS && window.FIRESTORE_SETTINGS.collectionName) || 'quotes';
+  
   try {
     if (window.DB_PROVIDER === 'firestore' && window.firebase && window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId) {
       if (!window.__firebaseApp) {
         window.__firebaseApp = window.firebase.initializeApp(window.FIREBASE_CONFIG);
       }
       firestore = window.firebase.firestore();
+      
+      // Configurar persistencia de caché (opcional, mejora offline)
+      try {
+        firestore.enablePersistence().catch((err) => {
+          if (err.code === 'failed-precondition') {
+            console.warn('⚠️ Firestore persistence requires exclusive access. Multiple tabs open?');
+          }
+        });
+      } catch (_) {}
+      
+      console.log('✅ Firestore inicializado correctamente');
+    } else if (window.DB_PROVIDER === 'firestore') {
+      console.warn('⚠️ Firestore configurado pero no inicializado. Verifica FIREBASE_CONFIG en db-config.js');
     }
-  } catch (_) {}
+  } catch (error) {
+    console.error('❌ Error inicializando Firestore:', error);
+    window.DB_PROVIDER = 'local'; // Fallback a localStorage
+  }
 
   if (sendBtn && formMsg) {
     sendBtn.addEventListener('click', () => {
@@ -58,7 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const saveRemote = async () => {
           if (!firestore) return saveLocal();
-          await firestore.collection('quotes').add(entry);
+          await firestore.collection(collectionName).add({
+            ...entry,
+            timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+          });
         };
         Promise.resolve(saveRemote()).then(() => {
           formMsg.textContent = 'Enviado. Te contactaremos en menos de 24 horas.';
@@ -373,107 +394,6 @@ document.addEventListener('DOMContentLoaded', () => {
     update(slider.value);
   });
 
-  // Admin panel auth (client-side demo only)
-  const adminLogin = document.getElementById('adminLogin');
-  const adminKey = document.getElementById('adminKey');
-  const adminMsg = document.getElementById('adminMsg');
-  const adminAuth = document.getElementById('adminAuth');
-  const adminPanel = document.getElementById('adminPanel');
-  const adminModal = document.getElementById('adminModal');
-  const adminClose = document.getElementById('adminClose');
-  if (adminLogin && adminKey && adminAuth && adminPanel) {
-    adminLogin.addEventListener('click', () => {
-      const val = String(adminKey.value || '').trim();
-      if (val === 'GRUPOGEEZEUROPA') {
-        adminAuth.style.display = 'none';
-        adminPanel.style.display = 'block';
-        if (adminMsg) { adminMsg.textContent = ''; }
-        renderQuotes();
-      } else {
-        if (adminMsg) { adminMsg.textContent = 'Clave incorrecta'; adminMsg.style.color = '#ef4444'; }
-      }
-    });
-  }
-
-  // Open admin (hidden) with Ctrl+Alt+A or hash/query
-  const openAdmin = () => { if (adminModal) { adminModal.classList.add('open'); adminModal.setAttribute('aria-hidden', 'false'); } };
-  const closeAdmin = () => { if (adminModal) { adminModal.classList.remove('open'); adminModal.setAttribute('aria-hidden', 'true'); } };
-  if (adminModal) {
-    window.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.altKey && (e.key.toLowerCase() === 'a')) { e.preventDefault(); openAdmin(); }
-      if (e.key === 'Escape') closeAdmin();
-    });
-    if (adminClose) adminClose.addEventListener('click', closeAdmin);
-    if (location.hash === '#admin' || new URLSearchParams(location.search).get('admin') === '1') openAdmin();
-    adminModal.addEventListener('click', (e) => { if (e.target === adminModal) closeAdmin(); });
-  }
-
-  function renderQuotes() {
-    const key = 'geez_quotes';
-    const table = document.getElementById('quotesTable');
-    if (!table) return;
-    const tbody = table.querySelector('tbody');
-    if (!tbody) return;
-    const loadLocal = () => {
-      const list = JSON.parse(localStorage.getItem(key) || '[]');
-      paint(list);
-      wire(list);
-    };
-    const loadRemote = async () => {
-      if (!firestore) return loadLocal();
-      const snap = await firestore.collection('quotes').orderBy('date','desc').get();
-      const rows = snap.docs.map(d => d.data());
-      paint(rows);
-      wire(rows);
-    };
-    const paint = (list) => {
-      tbody.innerHTML = '';
-      list.forEach(item => {
-        const tr = document.createElement('tr');
-        const d = new Date(item.date);
-        const dateStr = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
-        tr.innerHTML = `
-          <td>${escapeHtml(dateStr)}</td>
-          <td>${escapeHtml(item.name)}</td>
-          <td>${escapeHtml(item.phone)}</td>
-          <td>${escapeHtml(item.email)}</td>
-          <td>${escapeHtml(item.space)}</td>
-          <td>${escapeHtml(String(item.budget))}</td>
-          <td>${escapeHtml(item.area || '')}</td>
-          <td>${escapeHtml(item.message)}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    };
-    const wire = (list) => {
-      const exportBtn = document.getElementById('exportQuotes');
-      const clearBtn = document.getElementById('clearQuotes');
-      if (exportBtn) exportBtn.onclick = () => exportCSV(list);
-      if (clearBtn) clearBtn.onclick = async () => {
-        if (firestore) {
-          const snap = await firestore.collection('quotes').get();
-          const batch = firestore.batch();
-          snap.forEach(doc => batch.delete(doc.ref));
-          await batch.commit();
-        }
-        localStorage.removeItem(key);
-        renderQuotes();
-      };
-    };
-    loadRemote();
-  }
-
-  function exportCSV(list) {
-    if (!list || !list.length) return;
-    const headers = ['Fecha','Nombre','Telefono','Email','Estancia','Presupuesto','Medidas','Mensaje'];
-    const rows = list.map(it => [it.date, it.name, it.phone, it.email, it.space, it.budget, it.area || '', it.message]);
-    const csv = [headers, ...rows].map(r => r.map(v => '"' + String(v).replaceAll('"','""') + '"').join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'solicitudes_geez.csv'; a.click();
-    URL.revokeObjectURL(url);
-  }
 
   function escapeHtml(str) {
     return String(str).replace(/[&<>"]+/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s] || s));

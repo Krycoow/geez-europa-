@@ -566,45 +566,7 @@
       <a class="btn btn-outline" href="tel:+34900000000">Llamar</a>
       <a class="btn btn-outline" href="https://wa.me/000000000" target="_blank" rel="noreferrer">WhatsApp</a>
     </div>
-    <div class="sticky-cta">
-      <a href="#contacto" class="btn btn-primary" data-magnetic>Pide tu presupuesto</a>
-    </div>
 
-    <!-- Hidden Admin Modal (open with Ctrl+Alt+A or #admin) -->
-    <div id="adminModal" class="admin-modal" aria-hidden="true">
-      <div class="admin-card container">
-        <div class="admin-actions">
-          <strong>Panel de administración</strong>
-          <button id="adminClose" class="admin-close" aria-label="Cerrar">✕</button>
-        </div>
-        <div id="adminAuth">
-          <p>Introduce la clave de acceso:</p>
-          <div class="form-inline">
-            <input id="adminKey" placeholder="Clave" type="password">
-            <button id="adminLogin" class="btn btn-primary">Entrar</button>
-          </div>
-          <p id="adminMsg" class="form-msg" aria-live="polite"></p>
-        </div>
-        <div id="adminPanel" style="display:none;">
-          <div class="admin-actions">
-            <div>
-              <button id="exportQuotes" class="btn btn-outline">Exportar CSV</button>
-              <button id="clearQuotes" class="btn btn-outline">Borrar todo</button>
-            </div>
-          </div>
-          <div class="card" style="overflow:auto;">
-            <table id="quotesTable" class="admin-table">
-              <thead>
-                <tr>
-                  <th>Fecha</th><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Estancia</th><th>Presupuesto</th><th>m²</th><th>Mensaje</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
