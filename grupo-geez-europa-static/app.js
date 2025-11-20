@@ -386,12 +386,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const pane = wrapper.querySelector('.before-pane');
     const slider = wrapper.querySelector('.ba-slider');
     if (!pane || !slider) return;
+    let handle = wrapper.querySelector('.ba-handle');
+    if (!handle) {
+      handle = document.createElement('span');
+      handle.className = 'ba-handle';
+      wrapper.appendChild(handle);
+    }
+    wrapper.style.touchAction = 'none';
     const update = (val) => {
       const pct = Number(val);
       pane.style.width = pct + '%';
+      handle.style.left = pct + '%';
     };
     slider.addEventListener('input', (e) => update(e.target.value));
     update(slider.value);
+
+    let dragActive = false;
+    const clampPct = (pct) => Math.min(100, Math.max(0, pct));
+    const setFromClientX = (clientX) => {
+      const rect = wrapper.getBoundingClientRect();
+      const pct = clampPct(((clientX - rect.left) / rect.width) * 100);
+      slider.value = pct;
+      update(pct);
+    };
+
+    const startDrag = (event) => {
+      dragActive = true;
+      wrapper.classList.add('is-dragging');
+      if (event.pointerId !== undefined && wrapper.setPointerCapture) {
+        wrapper.setPointerCapture(event.pointerId);
+      }
+      setFromClientX(event.clientX);
+    };
+
+    const moveDrag = (event) => {
+      if (!dragActive) return;
+      setFromClientX(event.clientX);
+    };
+
+    const endDrag = (event) => {
+      if (!dragActive) return;
+      dragActive = false;
+      wrapper.classList.remove('is-dragging');
+      if (event.pointerId !== undefined && wrapper.releasePointerCapture) {
+        wrapper.releasePointerCapture(event.pointerId);
+      }
+    };
+
+    wrapper.addEventListener('pointerdown', startDrag);
+    wrapper.addEventListener('pointermove', moveDrag);
+    wrapper.addEventListener('pointerup', endDrag);
+    wrapper.addEventListener('pointercancel', endDrag);
+    wrapper.addEventListener('pointerleave', endDrag);
   });
 
 
